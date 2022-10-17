@@ -11,7 +11,7 @@ botbuilder-dialogs==4.13.0
 azure-cognitiveservices-language-luis==0.2.0
 datatypes-date-time>=1.0.0.a1
 msrest==0.6.10
-aiohttp==3.6.2
+aiohttp #==3.6.2
 unittest2
 aiounittest
 opencensus-ext-azure
