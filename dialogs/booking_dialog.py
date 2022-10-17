@@ -156,9 +156,34 @@ class BookingDialog(CancelAndHelpDialog):
 
     async def final_step(self, step_context: WaterfallStepContext) -> DialogTurnResult:
         """Complete the interaction and end the dialog."""
-        if step_context.result:
-            booking_details = step_context.options
+        # if step_context.result:
+        #     booking_details = step_context.options
 
-            return await step_context.end_dialog(booking_details)
+
+            # test code 
+             # Create data to track in App Insights
+        booking_details = step_context.options
+
+        properties = {}
+        # properties["initial_prompt"] = booking_details.initial_prompt
+        properties["or_city"] = booking_details.or_city
+        properties["dst_city"] = booking_details.dst_city
+        properties["str_date"] = booking_details.str_date
+        properties["end_date"] = booking_details.end_date
+        properties["budget"] = booking_details.budget
+         
+        if step_context.result:
+            self.telemetry_client.track_trace("SUCCESS", properties, "INFO")
+            return await step_context.end_dialog(booking_details) 
+        else: 
+            fail_msg = "fail"
+            prompt_fail_msg = MessageFactory.text(fail_msg, fail_msg)
+            await step_context.context.send_activity(prompt_fail_msg)
+            self.telemetry_client.track_trace("FAIL", properties, "ERROR")
 
         return await step_context.end_dialog()
+
+# fin test
+        #     return await step_context.end_dialog(booking_details)
+
+        # return await step_context.end_dialog()
