@@ -42,18 +42,26 @@ class BookingDialog(CancelAndHelpDialog):
 
         self.add_dialog(text_prompt)
         self.add_dialog(ConfirmPrompt(ConfirmPrompt.__name__))
+        
         self.add_dialog(
-            DateResolverDialog(DateResolverDialog.__name__, self.telemetry_client)
+            DateResolverDialog("StartDate", self.telemetry_client)
         )
+        self.add_dialog(
+            DateResolverDialog("EndDate", self.telemetry_client)
+        )
+
         self.add_dialog(waterfall_dialog)
 
         self.initial_dialog_id = WaterfallDialog.__name__
+
+        self.user_dialog = []
 
     async def destination_step(
         self, step_context: WaterfallStepContext
     ) -> DialogTurnResult:
         """Prompt for destination."""
         booking_details = step_context.options
+        self.user_dialog.append(step_context.result)
 
         if booking_details.dst_city is None:
             return await step_context.prompt(
@@ -68,6 +76,7 @@ class BookingDialog(CancelAndHelpDialog):
     async def origin_step(self, step_context: WaterfallStepContext) -> DialogTurnResult:
         """Prompt for origin city."""
         booking_details = step_context.options
+        self.user_dialog.append(step_context.result)
 
         # Capture the response to the previous step's prompt
         booking_details.dst_city = step_context.result
@@ -90,12 +99,13 @@ class BookingDialog(CancelAndHelpDialog):
 
         # Capture the results of the previous step
         booking_details.or_city = step_context.result
-        if booking_details.str_date is None:
-            return await step_context.prompt(
-                TextPrompt.__name__,
-                PromptOptions(
-                    prompt=MessageFactory.text("On what date will you be travelling?")
-                ),
+        self.user_dialog.append(step_context.result)
+
+        if not booking_details.str_date or self.is_ambiguous(
+            booking_details.str_date
+        ):
+            return await step_context.begin_dialog(
+                "StartDate", booking_details.str_date
             )
 
         return await step_context.next(booking_details.str_date)
@@ -109,12 +119,13 @@ class BookingDialog(CancelAndHelpDialog):
 
         # Capture the results of the previous step
         booking_details.str_date = step_context.result
-        if booking_details.end_date is None:
-            return await step_context.prompt(
-                TextPrompt.__name__,
-                PromptOptions(
-                    prompt=MessageFactory.text("On what date will you be returning?")
-                ),
+        self.user_dialog.append(step_context.result) 
+
+        if not booking_details.end_date or self.is_ambiguous(
+            booking_details.end_date
+        ):
+            return await step_context.begin_dialog(
+                "EndDate", booking_details.end_date
             )
 
         return await step_context.next(booking_details.end_date)
@@ -122,6 +133,7 @@ class BookingDialog(CancelAndHelpDialog):
     async def budget_step(self, step_context: WaterfallStepContext) -> DialogTurnResult:
         """Prompt for budget."""
         booking_details = step_context.options
+        self.user_dialog.append(step_context.result)
 
         # Capture the response to the previous step's prompt
         booking_details.end_date = step_context.result
@@ -140,6 +152,7 @@ class BookingDialog(CancelAndHelpDialog):
     ) -> DialogTurnResult:
         """Confirm the information the user has provided."""
         booking_details = step_context.options
+        self.user_dialog.append(step_context.result)
 
         # Capture the results of the previous step
         booking_details.budget = step_context.result
@@ -159,9 +172,9 @@ class BookingDialog(CancelAndHelpDialog):
     
         # Data for Application Insights
         booking_details = step_context.options
+        self.user_dialog.append(step_context.result)
 
         properties = {}
-        # properties["initial_prompt"] = booking_details.initial_prompt
         properties["or_city"] = booking_details.or_city
         properties["dst_city"] = booking_details.dst_city
         properties["str_date"] = booking_details.str_date
@@ -178,3 +191,8 @@ class BookingDialog(CancelAndHelpDialog):
             self.telemetry_client.track_trace("BOOKING FAILED", properties, "ERROR")
 
         return await step_context.end_dialog()
+
+    def is_ambiguous(self, timex: str) -> bool:
+        """Ensure time is correct."""
+        timex_property = Timex(timex)
+        return "definite" not in timex_property.types
