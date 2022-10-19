@@ -33,7 +33,7 @@ permissions:
 
 jobs:
   build:
-    # environment: env   # à ajouter ?
+    environment: env   # à ajouter ?
     runs-on: ubuntu-latest
 
     steps:
