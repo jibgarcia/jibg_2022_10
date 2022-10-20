@@ -11,7 +11,7 @@ import unittest # test framework
 class Test_Connection(unittest.TestCase):
     def test_config(self):
         configuration = DefaultConfig()
-        self.assertEqual(configuration.PORT, 3978)
+        self.assertEqual(configuration.PORT, 8000)
         self.assertIsNot(configuration.LUIS_API_KEY, "") # checks that LUIS_API_KEY is not empty
         self.assertIsNot(configuration.APPINSIGHTS_INSTRUMENTATION_KEY, "")
 
