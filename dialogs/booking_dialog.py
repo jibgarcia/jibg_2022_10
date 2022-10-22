@@ -55,6 +55,7 @@ class BookingDialog(CancelAndHelpDialog):
         self.initial_dialog_id = WaterfallDialog.__name__
 
         self.user_dialog = []
+        self.dialog = dict()
 
     async def destination_step(
         self, step_context: WaterfallStepContext
@@ -62,6 +63,7 @@ class BookingDialog(CancelAndHelpDialog):
         """Prompt for destination."""
         booking_details = step_context.options
         self.user_dialog.append(step_context.result)
+        self.dialog["beginning"] = step_context._turn_context.activity.text
 
         if booking_details.dst_city is None:
             return await step_context.prompt(
@@ -183,9 +185,9 @@ class BookingDialog(CancelAndHelpDialog):
          
         if step_context.result:
             self.telemetry_client.track_trace("BOOKING OK", properties, "INFO")
-            # self.telemetry_client.track_trace("CHAT_HISTORY", self.user_dialog, "INFO")
-            chat = self.user_dialog
-            self.telemetry_client.track_trace("CHAT_HISTORY", chat, "INFO")
+            self.telemetry_client.track_trace("CHAT_HISTORY", self.dialog, "INFO")
+            # chat = self.user_dialog
+            # self.telemetry_client.track_trace("CHAT_HISTORY", chat, "INFO")
             return await step_context.end_dialog(booking_details) 
         else: 
             else_msg = "Sorry I could not help you today."
