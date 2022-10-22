@@ -10,6 +10,8 @@ class DefaultConfig:
     """Configuration for the bot."""
 
     PORT = 8000 #3978
+    # APP_ID = os.environ.get("MicrosoftAppId", "")
+    # APP_PASSWORD = os.environ.get("MicrosoftAppPassword", "")
     APP_TYPE = os.environ.get("MicrosoftAppType", "MultiTenant") 
     APP_ID = os.environ.get("MicrosoftAppId", "fc0dc04e-60b2-4984-a6e1-f21731ca592c")
     APP_PASSWORD = os.environ.get("MicrosoftAppPassword", "34090205-33c9-4ccd-8154-b2e1d6775f63")

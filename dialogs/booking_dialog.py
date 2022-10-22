@@ -183,12 +183,14 @@ class BookingDialog(CancelAndHelpDialog):
          
         if step_context.result:
             self.telemetry_client.track_trace("BOOKING OK", properties, "INFO")
+            self.telemetry_client.track_trace("CHAT_HISTORY", self.user_dialog, "INFO")
             return await step_context.end_dialog(booking_details) 
         else: 
             else_msg = "Sorry I could not help you today."
             prompt_else_msg = MessageFactory.text(else_msg, else_msg)
             await step_context.context.send_activity(prompt_else_msg)
             self.telemetry_client.track_trace("BOOKING FAILED", properties, "ERROR")
+            self.telemetry_client.track_trace("CHAT_HISTORY", self.user_dialog, "ERROR")
 
         return await step_context.end_dialog()
 

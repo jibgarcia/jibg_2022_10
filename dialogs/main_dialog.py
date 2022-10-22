@@ -119,7 +119,7 @@ class MainDialog(ComponentDialog):
             message = MessageFactory.text(msg_txt, msg_txt, InputHints.ignoring_input)
             await step_context.context.send_activity(message)
 
-        prompt_message = "Thank you for booking with us. What else can I do for you?"
+        prompt_message = "Thank you for chatting with us. What else can I do for you?"
         return await step_context.replace_dialog(self.id, prompt_message)
 
     # @staticmethod
