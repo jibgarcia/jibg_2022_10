@@ -54,14 +54,14 @@ class BookingDialog(CancelAndHelpDialog):
 
         self.initial_dialog_id = WaterfallDialog.__name__
 
-        self.dialog = dict()
+        self.hist_dialog = dict()
 
     async def destination_step(
         self, step_context: WaterfallStepContext
     ) -> DialogTurnResult:
         """Prompt for destination."""
-        booking_details = step_context.options
-        self.dialog["query"] = step_context._turn_context.activity.text
+        self.hist_dialog["query"] = step_context._turn_context.activity.text
+        booking_details = step_context.options        
 
         if booking_details.dst_city is None:
             return await step_context.prompt(
@@ -75,8 +75,8 @@ class BookingDialog(CancelAndHelpDialog):
 
     async def origin_step(self, step_context: WaterfallStepContext) -> DialogTurnResult:
         """Prompt for origin city."""
-        booking_details = step_context.options
-        self.dialog["destination"] = step_context._turn_context.activity.text
+        self.hist_dialog["destination"] = step_context._turn_context.activity.text
+        booking_details = step_context.options        
 
         # Capture the response to the previous step's prompt
         booking_details.dst_city = step_context.result
@@ -95,11 +95,11 @@ class BookingDialog(CancelAndHelpDialog):
     ) -> DialogTurnResult:
         """Prompt for travel date."""
 
+        self.hist_dialog["origin"] = step_context._turn_context.activity.text
         booking_details = step_context.options
 
         # Capture the results of the previous step
         booking_details.or_city = step_context.result
-        self.dialog["origin"] = step_context._turn_context.activity.text
 
         if not booking_details.str_date or self.is_ambiguous(
             booking_details.str_date
@@ -115,11 +115,11 @@ class BookingDialog(CancelAndHelpDialog):
     ) -> DialogTurnResult:
         """Prompt for travel date."""
 
+        self.hist_dialog["start_date"] = step_context._turn_context.activity.text
         booking_details = step_context.options
 
         # Capture the results of the previous step
         booking_details.str_date = step_context.result
-        self.dialog["start_date"] = step_context._turn_context.activity.text
 
         if not booking_details.end_date or self.is_ambiguous(
             booking_details.end_date
@@ -132,8 +132,8 @@ class BookingDialog(CancelAndHelpDialog):
 
     async def budget_step(self, step_context: WaterfallStepContext) -> DialogTurnResult:
         """Prompt for budget."""
-        booking_details = step_context.options
-        self.dialog["end_date"] = step_context._turn_context.activity.text
+        self.hist_dialog["end_date"] = step_context._turn_context.activity.text
+        booking_details = step_context.options        
 
         # Capture the response to the previous step's prompt
         booking_details.end_date = step_context.result
@@ -151,8 +151,8 @@ class BookingDialog(CancelAndHelpDialog):
         self, step_context: WaterfallStepContext
     ) -> DialogTurnResult:
         """Confirm the information the user has provided."""
+        self.hist_dialog["budget"] = step_context._turn_context.activity.text
         booking_details = step_context.options
-        self.dialog["budget"] = step_context._turn_context.activity.text
 
         # Capture the results of the previous step
         booking_details.budget = step_context.result
@@ -171,9 +171,9 @@ class BookingDialog(CancelAndHelpDialog):
         """Complete the interaction and end the dialog."""
     
         # Data for Application Insights
+        self.hist_dialog["user_yes_or_no"] = step_context._turn_context.activity.text
         booking_details = step_context.options
-        self.dialog["user_yes_or_no"] = step_context._turn_context.activity.text
-
+        
         properties = {}
         properties["or_city"] = booking_details.or_city
         properties["dst_city"] = booking_details.dst_city
@@ -183,14 +183,14 @@ class BookingDialog(CancelAndHelpDialog):
          
         if step_context.result:
             self.telemetry_client.track_trace("BOOKING OK", properties, "INFO")
-            self.telemetry_client.track_trace("CHAT_HISTORY", self.dialog, "INFO")
+            self.telemetry_client.track_trace("CHAT_HISTORY", self.hist_dialog, "INFO")
             return await step_context.end_dialog(booking_details) 
         else: 
             else_msg = "Sorry I could not help you today."
             prompt_else_msg = MessageFactory.text(else_msg, else_msg)
             await step_context.context.send_activity(prompt_else_msg)
             self.telemetry_client.track_trace("BOOKING FAILED", properties, "ERROR")
-            self.telemetry_client.track_trace("CHAT_HISTORY", self.dialog, "ERROR")
+            self.telemetry_client.track_trace("CHAT_HISTORY", self.hist_dialog, "ERROR")
 
         return await step_context.end_dialog()
 
