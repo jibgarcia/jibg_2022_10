@@ -151,11 +151,12 @@ class BookingDialog(CancelAndHelpDialog):
         self, step_context: WaterfallStepContext
     ) -> DialogTurnResult:
         """Confirm the information the user has provided."""
-        self.hist_dialog["budget"] = step_context._turn_context.activity.text
+        
         booking_details = step_context.options
 
         # Capture the results of the previous step
         booking_details.budget = step_context.result
+        self.hist_dialog["budget"] = step_context._turn_context.activity.text
         msg = (
             f"Please confirm, I have you traveling to: { booking_details.dst_city }"
             f" from: { booking_details.or_city } on: { booking_details.str_date}"
