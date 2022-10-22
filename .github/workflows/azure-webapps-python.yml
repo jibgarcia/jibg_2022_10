@@ -58,7 +58,7 @@ jobs:
       - name: Install dependencies
         run:
           # pip3 install aiohttp
-          pip3 install -r requirements.txt
+          pip3 install -r requirements.txt && gunicorn --bind=0.0.0.0 --timeout 600 app:APP
         
       # Optional: Add step to run tests here (PyTest, Django test suites, etc.)
       - name: Run unit tests
