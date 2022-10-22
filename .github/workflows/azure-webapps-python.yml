@@ -28,8 +28,13 @@ on:
     branches: [ "master" ]
   workflow_dispatch:
 
-# permissions:
-#   contents: read
+env: 
+    AppInsightsInstrumentationKey: ${{ secrets.APPINSIGHTSINSTRUMENTATIONKEY }}
+    LuisAPIHostName: ${{ secrets.LUISAPIHOSTNAME }}
+    LuisAPIKey: ${{ secrets.LUISAPIKEY }}
+    LuisAppId: ${{ secrets.LUISAPPID }}
+    MicrosoftAppPassword: ${{ secrets.MICROSOFTAPPPASSWORD }}
+    MicrosoftAppId: ${{ secrets.MICROSOFTAPPID }} 
 
 jobs:
   build:
@@ -37,10 +42,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v2
 
       - name: Set up Python version
-        uses: actions/setup-python@v3.0.0
+        uses: actions/setup-python@v1
         with:
           python-version: '3.10'
           # cache: 'pip'
@@ -60,7 +65,7 @@ jobs:
         run: python unit_test.py
       
       - name: Upload artifact for deployment jobs
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v2
         with:
           name: python-app
           path: |
@@ -78,7 +83,7 @@ jobs:
 
     steps:
       - name: Download artifact from build job
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v2
         with:
           name: python-app
           path: .
